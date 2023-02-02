@@ -22,13 +22,11 @@
   },
   "web_accessible_resources": [
     {
-      "resources": [
-        "build/injected.js"
-      ],
+      "resources": ["build/injected.js"],
       "matches": ["http://*/*", "https://*/*"]
     }
   ],
-  
+
   "content_scripts": [
     {
       "matches": ["file://*/*", "http://*/*", "https://*/*"],
