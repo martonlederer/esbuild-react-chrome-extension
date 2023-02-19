@@ -6,6 +6,7 @@
  * Read more about content scripts:
  * https://developer.chrome.com/docs/extensions/mv2/content_scripts/
  */
+import { checkAngles } from "./gesture_utils";
 import { render } from "./view/main";
 
 console.log("Behrooz's content script");
@@ -64,58 +65,28 @@ export const reportMouseMove = async (ev: MouseEvent) => {
       }
       const highMs = performance.now();
       const lowMs = highMs - 2000;
-      const events = mouseEvents.filter(({ ms }) => ms > lowMs && ms <= highMs);
+      mouseEvents = mouseEvents.filter(({ ms }) => ms > lowMs && ms <= highMs);
       const centerX =
-        events.map(({ x }) => x).reduce((a, b) => a + b, 0) / events.length;
+        mouseEvents.map(({ x }) => x).reduce((a, b) => a + b, 0) /
+        mouseEvents.length;
       const centerY =
-        events.map(({ y }) => y).reduce((a, b) => a + b, 0) / events.length;
-      console.log("center points" + centerX + " " + centerY);
-      const angles = events.map(({ x, y }) => {
+        mouseEvents.map(({ y }) => y).reduce((a, b) => a + b, 0) /
+        mouseEvents.length;
+      const angles = mouseEvents.map(({ x, y }) => {
         const deltaX = x - centerX;
         const deltaY = centerY - y;
         if (deltaX === 0) {
           return deltaY > 0 ? -Math.PI / 2 : Math.PI / 2;
         }
-        // const tanget = deltaY / deltaX;
-        // const onRHS = deltaX > 0;
         const angleDegrees = Math.atan2(deltaX, deltaY) * (180 / Math.PI); // in degress
         const angleNormalized =
           angleDegrees < 0 ? 360 + angleDegrees : angleDegrees; // 0-360
         return angleNormalized;
-        // return onRHS ? angle : angle + Math.PI; // range [-pi/2, 3pi/2]
-        // tangent = opp / adj
       });
-      // .map(rad => rad + Math.PI / 2) // range [0, 2pi]
-      // .map(rad => Math.round((rad / (2 * Math.PI)) * 180)); // range [0, 360]
-
-      let maybeCircle = true;
-      for (let i = 0; i < angles.length - 1; i++) {
-        const p1 = angles[i]; // = 358
-        const p2 = angles[i + 1]; // = 4
-
-        const acceptableP2Min = p1;
-        const acceptableP2Max = (p1 + 45) % 360;
-        let ok = false;
-        if (acceptableP2Max < acceptableP2Min) {
-          ok =
-            (acceptableP2Min <= p2 && p2 <= 360) ||
-            (0 <= p2 && p2 <= acceptableP2Max);
-        } else {
-          ok = acceptableP2Min <= p2 && p2 <= acceptableP2Max;
-        }
-        if (!ok) {
-          console.log(`Not ok p1 ${p1} p2: ${p2}`);
-        }
-        maybeCircle = maybeCircle && ok;
+      if (checkAngles(angles)) {
+        console.log("Detected gesture");
+        mouseEvents = [];
       }
-      console.log("maybeCircle = ", maybeCircle);
-      console.log("angles ", angles);
-      // console.log(angles);
-      // console.log(mouseEvents);
-      //
-      //                o
-      //                |
-      //   center -------
     }, 1000);
   }
 };
