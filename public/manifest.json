@@ -30,6 +30,7 @@
   "content_scripts": [
     {
       "matches": ["file://*/*", "http://*/*", "https://*/*"],
+      "css": ["build/content.css"],
       "js": ["build/content.js"],
       "run_at": "document_end"
     }
