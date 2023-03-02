@@ -1,0 +1,12 @@
+.beh_container {
+  /* display: flex; */
+  position: fixed;
+  top: 20%;
+  left: 50%;
+  display: inline-block;
+  height: 20px;
+  width: 20px;
+  background-color: powderblue;
+  /* margin-top: -100px;
+    margin-left: -100px; */
+}

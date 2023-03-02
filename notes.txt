@@ -1,0 +1,2 @@
+eslint instructions
+https://khalilstemmler.com/blogs/typescript/eslint-for-typescript/
