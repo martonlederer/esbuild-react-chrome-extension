@@ -1,5 +1,11 @@
-import { checkAngles } from "../src/gesture_utils";
-describe("Ingredient DAL", () => {
+import {
+  anglesHaveGesturePresent,
+  findCenter,
+  generateAngles,
+  GestureDetectionResult,
+  GestureRecognizer
+} from "../src/gesture_utils";
+describe("All about angles", () => {
   it("checkAngles should detect circle", async () => {
     const angles = [
       119.13249100248731, 175.5081703592017, 260.7040128734326,
@@ -9,7 +15,9 @@ describe("Ingredient DAL", () => {
       284.26099944654766, 332.06005157100975, 332.3075021483307,
       10.515332213760514
     ];
-    expect(checkAngles(angles)).toBeTruthy();
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.GestureDetected
+    );
   });
   it("should detect circle with more points", () => {
     const angles = [
@@ -26,7 +34,9 @@ describe("Ingredient DAL", () => {
       335.06457229853135, 87.93849977439129, 129.65085114730417,
       178.80635616367832
     ];
-    expect(checkAngles(angles)).toBeTruthy();
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.GestureDetected
+    );
   });
   it("should not detect a circle and should splice non circular entries", () => {
     const angles = [
@@ -37,9 +47,9 @@ describe("Ingredient DAL", () => {
       332.7981025509856, 288.1795981843835, 281.21884228126885,
       275.5258689249448, 272.8291286488402
     ];
-    const anglesLength = angles.length;
-    expect(checkAngles(angles)).toBeFalsy();
-    expect(angles.length).toBeLessThan(anglesLength);
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.NotDetected
+    );
   });
   it("should not detect figure 8", () => {
     const angles = [
@@ -54,9 +64,9 @@ describe("Ingredient DAL", () => {
       324.7830475516337, 3.090269031411277, 131.30117734936658,
       126.07775214598243
     ];
-    const anglesLength = angles.length;
-    expect(checkAngles(angles)).toBeFalsy();
-    expect(angles.length).toBeLessThan(anglesLength);
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.NotDetected
+    );
   });
   it("should not detect giggle mouse movement", () => {
     const angles = [
@@ -73,7 +83,236 @@ describe("Ingredient DAL", () => {
       275.74803523608296, 84.47485345570813, 270.12533921381777
     ];
     const anglesLength = angles.length;
-    expect(checkAngles(angles)).toBeFalsy();
-    expect(angles.length).toBeLessThan(anglesLength);
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.NotDetected
+    );
+  });
+});
+
+describe("All about centers and angles", () => {
+  it("should find the center point of the group.", () => {
+    const points = [
+      { x: 10, y: 20, ms: 0 },
+      { x: 11, y: 21, ms: 0 },
+      { x: 12, y: 22, ms: 0 },
+      { x: 13, y: 23, ms: 0 },
+      { x: 14, y: 24, ms: 0 },
+      { x: 15, y: 25, ms: 0 },
+      { x: 16, y: 26, ms: 0 },
+      { x: 17, y: 27, ms: 0 },
+      { x: 18, y: 28, ms: 0 },
+      { x: 19, y: 29, ms: 0 },
+      { x: 20, y: 30, ms: 0 }
+    ];
+    const center = { centerX: 15, centerY: 25 };
+    expect(findCenter(points)).toStrictEqual(center);
+    expect(
+      generateAngles(points, center.centerX, center.centerY)
+    ).toStrictEqual([
+      315, 315, 315, 315, 315, 1.5707963267948966, 135, 135, 135, 135, 135
+    ]);
+  });
+
+  it("should find the center point of random points of a single circle.", () => {
+    const points = [
+      { x: 618, y: 515, ms: 7155 },
+      { x: 495, y: 586, ms: 7972 },
+      { x: 357, y: 576, ms: 8555 },
+      { x: 284, y: 520, ms: 9088.700000047684 },
+      { x: 193, y: 420, ms: 10255 },
+      { x: 196, y: 353, ms: 10848.400000095367 },
+      { x: 210, y: 187, ms: 11405.800000071526 },
+      { x: 485, y: 165, ms: 11971.200000047684 },
+      { x: 588, y: 180, ms: 13388.100000023842 },
+      { x: 690, y: 252, ms: 13956.200000047684 },
+      { x: 728, y: 415, ms: 14520.700000047684 },
+      { x: 559, y: 558, ms: 15004.800000071526 },
+      { x: 415, y: 539, ms: 15454.800000071526 },
+      { x: 270, y: 529, ms: 15953.800000071526 },
+      { x: 145, y: 357, ms: 16521.5 },
+      { x: 249, y: 155, ms: 17037.900000095367 },
+      { x: 444, y: 145, ms: 17554.800000071526 }
+    ];
+    const center = { centerX: 407.4117647058824, centerY: 379.52941176470586 };
+    expect(findCenter(points)).toStrictEqual(center);
+    const angles = generateAngles(points, center.centerX, center.centerY);
+    expect(angles).toStrictEqual([
+      122.75301823378237, 157.0125408242657, 194.39088679678636,
+      221.30122873917264, 259.3110781984934, 277.15248410398624,
+      314.2826518003633, 19.883391543562766, 42.1473237618413,
+      65.71079131144626, 96.31365149991173, 139.65630044826864,
+      177.27569727035907, 222.59304398349045, 274.9071066646488,
+      324.79596397748094, 8.86706886227751
+    ]);
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.PartcialDetection
+    );
+  });
+
+  it("should detect a single circle.", () => {
+    const points = [
+      { x: 618, y: 515, ms: 7155 },
+      { x: 495, y: 586, ms: 7972 },
+      { x: 357, y: 576, ms: 8555 },
+      { x: 284, y: 520, ms: 9088.700000047684 },
+      { x: 193, y: 420, ms: 10255 },
+      { x: 196, y: 353, ms: 10848.400000095367 },
+      { x: 210, y: 187, ms: 11405.800000071526 },
+      { x: 485, y: 165, ms: 11971.200000047684 },
+      { x: 588, y: 180, ms: 13388.100000023842 },
+      { x: 690, y: 252, ms: 13956.200000047684 },
+      { x: 728, y: 415, ms: 14520.700000047684 },
+      { x: 559, y: 558, ms: 15004.800000071526 },
+      { x: 415, y: 539, ms: 15454.800000071526 },
+      { x: 270, y: 529, ms: 15953.800000071526 },
+      { x: 145, y: 357, ms: 16521.5 },
+      { x: 249, y: 155, ms: 17037.900000095367 },
+      { x: 444, y: 145, ms: 17554.800000071526 }
+    ];
+    const center = { centerX: 407.4117647058824, centerY: 379.52941176470586 };
+    expect(findCenter(points)).toStrictEqual(center);
+    const angles = generateAngles(points, center.centerX, center.centerY);
+    expect(angles).toStrictEqual([
+      122.75301823378237, 157.0125408242657, 194.39088679678636,
+      221.30122873917264, 259.3110781984934, 277.15248410398624,
+      314.2826518003633, 19.883391543562766, 42.1473237618413,
+      65.71079131144626, 96.31365149991173, 139.65630044826864,
+      177.27569727035907, 222.59304398349045, 274.9071066646488,
+      324.79596397748094, 8.86706886227751
+    ]);
+    expect(anglesHaveGesturePresent(angles, 360)).toBe(
+      GestureDetectionResult.GestureDetected
+    );
+  });
+
+  it("should find the a double loop", () => {
+    const points = [
+      { x: 438, y: 106, ms: 1726.8999999761581 },
+      { x: 548, y: 128, ms: 2344.5 },
+      { x: 609, y: 166, ms: 2894.5999999046326 },
+      { x: 661, y: 217, ms: 3410.1999999284744 },
+      { x: 723, y: 253, ms: 4011.399999976158 },
+      { x: 749, y: 406, ms: 4559 },
+      { x: 671, y: 531, ms: 5044.299999952316 },
+      { x: 503, y: 555, ms: 5511 },
+      { x: 351, y: 521, ms: 6011.099999904633 },
+      { x: 223, y: 483, ms: 6494 },
+      { x: 182, y: 402, ms: 6994.599999904633 },
+      { x: 175, y: 322, ms: 7444.099999904633 },
+      { x: 194, y: 208, ms: 7960.399999976158 },
+      { x: 237, y: 153, ms: 8494.899999976158 },
+      { x: 330, y: 108, ms: 8977.799999952316 },
+      { x: 420, y: 101, ms: 9460.799999952316 },
+      { x: 537, y: 99, ms: 9943.599999904633 },
+      { x: 650, y: 144, ms: 10443.399999976158 },
+      { x: 752, y: 197, ms: 10926.899999976158 },
+      { x: 775, y: 307, ms: 11427.899999976158 },
+      { x: 771, y: 409, ms: 11877.299999952316 },
+      { x: 666, y: 518, ms: 12344.5 },
+      { x: 617, y: 543, ms: 12844 },
+      { x: 527, y: 539, ms: 13277.299999952316 },
+      { x: 369, y: 522, ms: 13760.5 },
+      { x: 222, y: 494, ms: 14209.799999952316 },
+      { x: 144, y: 382, ms: 14677.5 },
+      { x: 114, y: 219, ms: 15127.699999928474 },
+      { x: 272, y: 162, ms: 15560.599999904633 },
+      { x: 280, y: 118, ms: 16027.099999904633 },
+      { x: 367, y: 92, ms: 16444.099999904633 },
+      { x: 457, y: 84, ms: 16893.599999904633 },
+      { x: 642, y: 88, ms: 17377.399999976158 },
+      { x: 688, y: 148, ms: 17844.099999904633 },
+      { x: 762, y: 239, ms: 18344.099999904633 },
+      { x: 768, y: 374, ms: 18827.5 },
+      { x: 721, y: 486, ms: 19327.199999928474 },
+      { x: 712, y: 492, ms: 20044.199999928474 },
+      { x: 588, y: 537, ms: 20544.099999904633 }
+    ];
+    const center = { centerX: 497.8205128205128, centerY: 303.9230769230769 };
+    expect(findCenter(points)).toStrictEqual(center);
+    const angles = generateAngles(points, center.centerX, center.centerY);
+    expect(angles).toStrictEqual([
+      343.18301881813863, 15.920024752068024, 38.872210541563575,
+      61.95649281636506, 77.25722278019785, 112.11635097715953,
+      142.66916144520977, 178.81820811791735, 214.07255198697015,
+      236.91116701315303, 252.74800662131838, 266.79496553577536,
+      287.5220969822299, 300.0557030744232, 319.41785398096204,
+      339.0183011039728, 10.823824913340655, 43.5787236155253, 67.1854696545574,
+      90.63600473113492, 111.0389525012068, 141.84671366249208,
+      153.5038139093678, 172.92421606948594, 210.5708284609924,
+      235.42800454990427, 257.5560709558628, 282.4761107673676,
+      302.1484311421117, 310.4827759977166, 328.3128886658296, 349.484842994645,
+      33.73244024955, 50.652589565859635, 76.19296986246333, 104.54049356467422,
+      129.20865960528863, 131.28726143352927, 158.84811281441523
+    ]);
+    expect(anglesHaveGesturePresent(angles, 720)).toBe(
+      GestureDetectionResult.GestureDetected
+    );
+  });
+});
+
+describe("GestureRecognizer", () => {
+  it("GestureRecognizer should find the a double loop", async () => {
+    let gestureDetected = false;
+    const recognizer = new GestureRecognizer(
+      () => (gestureDetected = true),
+      100000,
+      900
+    );
+    let counter = 0;
+    Object.defineProperty(performance, "now", {
+      value: jest.fn(),
+      configurable: true,
+      writable: true
+    });
+    jest.spyOn(performance, "now").mockImplementation(() => {
+      counter += 25;
+      return counter;
+    });
+    const points = [
+      { x: 438, y: 106, ms: 1726.8999999761581 },
+      { x: 548, y: 128, ms: 2344.5 },
+      { x: 609, y: 166, ms: 2894.5999999046326 },
+      { x: 661, y: 217, ms: 3410.1999999284744 },
+      { x: 723, y: 253, ms: 4011.399999976158 },
+      { x: 749, y: 406, ms: 4559 },
+      { x: 671, y: 531, ms: 5044.299999952316 },
+      { x: 503, y: 555, ms: 5511 },
+      { x: 351, y: 521, ms: 6011.099999904633 },
+      { x: 223, y: 483, ms: 6494 },
+      { x: 182, y: 402, ms: 6994.599999904633 },
+      { x: 175, y: 322, ms: 7444.099999904633 },
+      { x: 194, y: 208, ms: 7960.399999976158 },
+      { x: 237, y: 153, ms: 8494.899999976158 },
+      { x: 330, y: 108, ms: 8977.799999952316 },
+      { x: 420, y: 101, ms: 9460.799999952316 },
+      { x: 537, y: 99, ms: 9943.599999904633 },
+      { x: 650, y: 144, ms: 10443.399999976158 },
+      { x: 752, y: 197, ms: 10926.899999976158 },
+      { x: 775, y: 307, ms: 11427.899999976158 },
+      { x: 771, y: 409, ms: 11877.299999952316 },
+      { x: 666, y: 518, ms: 12344.5 },
+      { x: 617, y: 543, ms: 12844 },
+      { x: 527, y: 539, ms: 13277.299999952316 },
+      { x: 369, y: 522, ms: 13760.5 },
+      { x: 222, y: 494, ms: 14209.799999952316 },
+      { x: 144, y: 382, ms: 14677.5 },
+      { x: 114, y: 219, ms: 15127.699999928474 },
+      { x: 272, y: 162, ms: 15560.599999904633 },
+      { x: 280, y: 118, ms: 16027.099999904633 },
+      { x: 367, y: 92, ms: 16444.099999904633 },
+      { x: 457, y: 84, ms: 16893.599999904633 },
+      { x: 642, y: 88, ms: 17377.399999976158 },
+      { x: 688, y: 148, ms: 17844.099999904633 },
+      { x: 762, y: 239, ms: 18344.099999904633 },
+      { x: 768, y: 374, ms: 18827.5 },
+      { x: 721, y: 486, ms: 19327.199999928474 },
+      { x: 712, y: 492, ms: 20044.199999928474 },
+      { x: 588, y: 537, ms: 20544.099999904633 }
+    ];
+
+    for (const point of points) {
+      await recognizer.addMouseMoveEvent(point.x, point.y);
+    }
+    expect(gestureDetected).toBe(true);
   });
 });
